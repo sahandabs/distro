@@ -26,7 +26,8 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	go func() {
-		err := process(ctx, inPath, outPath, &wg)
+		defer wg.Done()
+		err := process(ctx, inPath, outPath)
 		if err != nil && !errors.Is(err, ErrProcessEaryBail) {
 			log.Fatalf("error when calling process, error: %v", err)
 		}

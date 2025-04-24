@@ -14,6 +14,12 @@ type readProcessor struct {
 	reader *csv.Reader
 }
 
+type inputReader interface {
+	ReadRow() (row, error)
+}
+
+var _ inputReader = &readProcessor{}
+
 func newReadProcessorCSV(path string, shouldReadFirstLine bool) (*readProcessor, func(), error) {
 	file, err := os.Open(path)
 	if err != nil {
@@ -34,7 +40,7 @@ func newReadProcessorCSV(path string, shouldReadFirstLine bool) (*readProcessor,
 	return &readProcessor{reader: reader}, func() { file.Close() }, nil
 }
 
-func (r *readProcessor) readRow() (row, error) {
+func (r *readProcessor) ReadRow() (row, error) {
 	// condiser to set record reuse to true
 	records, err := r.reader.Read()
 	if err != nil {
@@ -46,6 +52,7 @@ func (r *readProcessor) readRow() (row, error) {
 		return row{}, FieldParseError{err: ErrInvalidFieldsCount}
 	}
 
+	// consider reusing a single row data and not to allocate from heap every time in convert funcitons
 	houseId, err := strconv.Atoi(records[0])
 	if err != nil {
 		return row{}, FieldParseError{err: errors.Join(err, ErrInvalidField), fieldName: "house-number"}

@@ -16,7 +16,7 @@ func TestReadRow_ValidRow(t *testing.T) {
 	_, _ = reader.Read() // skip header
 
 	rp := &readProcessor{reader: reader}
-	row, err := rp.readRow()
+	row, err := rp.ReadRow()
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -34,6 +34,6 @@ func TestReadRow_InvalidNumber(t *testing.T) {
 	_, _ = reader.Read()
 
 	rp := &readProcessor{reader: reader}
-	_, err := rp.readRow()
+	_, err := rp.ReadRow()
 	assert.ErrorIs(t, err, ErrInvalidField)
 }

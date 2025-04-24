@@ -12,6 +12,12 @@ type outPutManager struct {
 	writer *csv.Writer
 }
 
+type outPutter interface {
+	Save(data map[int]map[string]map[int]float64) error
+}
+
+var _ outPutter = &outPutManager{}
+
 func newOutPutManager(writePath string, clmns ...string) (*outPutManager, func(), error) {
 	f, err := os.Create(writePath)
 	if err != nil {

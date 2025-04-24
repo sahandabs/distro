@@ -5,11 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"sync"
 )
 
-func process(ctx context.Context, inPath, outPath string, wg *sync.WaitGroup) error {
-	defer wg.Done()
+func process(ctx context.Context, inPath, outPath string) error {
 	readP, inClose, err := newReadProcessorCSV(inPath, true)
 	if err != nil {
 		return fmt.Errorf("error when initiating read processor: %w", err)
@@ -25,16 +23,15 @@ func process(ctx context.Context, inPath, outPath string, wg *sync.WaitGroup) er
 	}
 	defer outClose()
 
-	var finished bool
 	count := 0
-	for !finished {
+	for {
 		select {
 		case <-ctx.Done():
 			// we can also use the ctx err
 			return ErrProcessEaryBail
 		default:
 		}
-		row, err := readP.readRow()
+		row, err := readP.ReadRow()
 		if err != nil {
 			var pe FieldParseError
 			if errors.As(err, &pe) && pe.IsRetryable() {
@@ -58,6 +55,7 @@ func process(ctx context.Context, inPath, outPath string, wg *sync.WaitGroup) er
 		}
 	}
 
+	// TODO(Sahand): consider flushing in intervals
 	err = outProcessor.Save(agg.data)
 	if err != nil {
 		return fmt.Errorf("error when saving output %w", err)

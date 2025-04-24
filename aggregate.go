@@ -2,11 +2,18 @@ package main
 
 import "fmt"
 
+// Note: aggreagator it not thread safe as of now
 type aggregator struct {
 	// this is a map of selected time periods to map of household id and the aggregated consumption
 	data       map[int]map[string]map[int]float64 // this can be sth like map[year_quarter_houseid]float64
 	timePeriod TimePeriod
 }
+
+type DataAggregator interface {
+	Aggregate(row) error
+}
+
+var _ DataAggregator = aggregator{}
 
 func newAggregator(tp TimePeriod) (aggregator, error) {
 	if !tp.IsValid() {
